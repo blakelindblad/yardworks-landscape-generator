@@ -1,5 +1,4 @@
-from cog.server.predictor import Predictor, input
-from cog import Path
+import cog
 from PIL import Image
 import io
 import numpy as np
@@ -7,7 +6,7 @@ import torch
 from transformers import SamModel, SamProcessor
 from diffusers import StableDiffusionInpaintPipeline
 
-class Predictor(Predictor):
+class Predictor(cog.Predictor):
     def setup(self):
         """Load the models during setup."""
         # Load SAM model for segmentation
@@ -22,9 +21,9 @@ class Predictor(Predictor):
         )
         self.pipe.to("cuda")  # Use GPU on Replicate
 
-    @input("image", type=Path, help="Upload a house photo")
-    @input("prompt", type=str, default="a modern lawn with colorful flowers", help="Describe the new front yard")
-    @input("negative_prompt", type=str, default="blurry, low quality", help="What to avoid in the new front yard")
+    @cog.input("image", type=cog.Path, help="Upload a house photo")
+    @cog.input("prompt", type=str, default="a modern lawn with colorful flowers", help="Describe the new front yard")
+    @cog.input("negative_prompt", type=str, default="blurry, low quality", help="What to avoid in the new front yard")
     def predict(self, image, prompt, negative_prompt):
         """Run the prediction: segment the house and inpaint the yard."""
         # Load the image
@@ -44,7 +43,7 @@ class Predictor(Predictor):
         output_path = "/tmp/output.png"
         result.save(output_path)
 
-        return Path(output_path)
+        return cog.Path(output_path)
 
     def segment_house(self, image):
         try:
