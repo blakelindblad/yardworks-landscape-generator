@@ -25,14 +25,14 @@ class Predictor(BasePredictor):
     def predict(self, image: CogPath, prompt: str = "A lush garden with colorful flower beds, a small fountain, and neatly trimmed bushes") -> CogPath:
         """
         Detect the yard area (including current fixtures like trees or pathways) using SAM, exclude the house or structures,
-        and regenerate a new landscape based on user input, blending it seamlessly with the existing image.
+        and fully regenerate a new landscape based on user input, replacing the yard area without blending.
 
         Args:
             image (cog.Path): Path to the input image containing a yard and a house/structure.
             prompt (str): User-provided text prompt describing the desired new landscape for the yard.
 
         Returns:
-            cog.Path: Path to the generated image with the new landscape blended into the yard area.
+            cog.Path: Path to the generated image with the new landscape in the yard area.
         """
         # Load the input image
         input_image = Image.open(str(image)).convert("RGB")
@@ -59,20 +59,20 @@ class Predictor(BasePredictor):
         # Convert input image to numpy array for inpainting
         input_image_np = np.array(input_image)
 
-        # Use Stable Diffusion Inpainting to regenerate the landscape in the yard area
+        # Use Stable Diffusion Inpainting to fully regenerate the landscape in the yard area
         with torch.autocast(self.device):
             generated_image = self.pipe(
                 prompt=prompt,
                 image=input_image_np,  # Pass as numpy array
                 mask_image=yard_mask_np,  # Pass as numpy array
-                strength=0.6,  # Lower strength for better blending
+                strength=1.0,  # Set strength to 1.0 to fully replace the yard area
                 guidance_scale=7.5,
                 num_inference_steps=50,
-                eta=0.1  # Adjust eta for smoother blending
+                eta=0.0  # Set eta to 0 to avoid blending noise
             ).images[0]
 
         # Save the generated image
-        output_path = "/tmp/blended_yard.png"
+        output_path = "/tmp/replaced_yard.png"
         generated_image.save(output_path)
 
         return CogPath(output_path)
