@@ -21,6 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate model name
+        run: |
+          if [[ "${{ inputs.model_name }}" =~ ^r8\.im/ ]]; then
+            echo "Error: model_name should not include 'r8.im/'. Use the format '<username>/<model-name>' (e.g., 'alice/bunny-detector')."
+            exit 1
+          fi
+          if ! [[ "${{ inputs.model_name }}" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+            echo "Error: model_name must be in the format '<username>/<model-name>' (e.g., 'alice/bunny-detector')."
+            exit 1
+          fi
+
       - name: Setup Cog
         uses: replicate/setup-cog@v2
         with:
