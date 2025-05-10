@@ -1,5 +1,6 @@
 import torch
 import requests
+from pathlib import Path
 from PIL import Image
 from transformers import SamModel, SamProcessor
 from diffusers import StableDiffusionInpaintPipeline
@@ -41,9 +42,24 @@ class Predictor:
         torch.cuda.empty_cache()
         return mask
 
-    def predict(self, image: str, prompt: str, negative_prompt: str) -> str:
+    def predict(self, image: Path, prompt: str, negative_prompt: str) -> str:
+        """
+        Redesign the front yard of a house in the input image based on the prompt.
+
+        Args:
+            image (Path): An image of a house with a front yard to redesign (upload an image file or provide a URL).
+            prompt (str): A description of the desired front yard design (e.g., "a modern lawn with colorful flowers").
+            negative_prompt (str): What to avoid in the design (e.g., "blurry, low quality").
+
+        Returns:
+            str: Path to the generated image with the redesigned front yard.
+        """
         # Load image
-        input_image = Image.open(requests.get(image, stream=True).raw).convert("RGB")
+        # If image is a URL (from API) or a local path (from UI upload), handle accordingly
+        if str(image).startswith(("http://", "https://")):
+            input_image = Image.open(requests.get(image, stream=True).raw).convert("RGB")
+        else:
+            input_image = Image.open(image).convert("RGB")
         input_image = input_image.resize((512, 512))
 
         # Segment yard
