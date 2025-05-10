@@ -9,17 +9,26 @@ from diffusers import StableDiffusionInpaintPipeline
 class Predictor(BasePredictor):
     def setup(self):
         """Load the models during setup."""
-        # Load SAM model for segmentation
-        self.processor = SamProcessor.from_pretrained("facebook/sam-vit-tiny")
-        self.model = SamModel.from_pretrained("facebook/sam-vit-tiny")
+        try:
+            print("Loading SAM processor...")
+            self.processor = SamProcessor.from_pretrained("facebook/sam-vit-tiny")
+            print("Loading SAM model...")
+            self.model = SamModel.from_pretrained("facebook/sam-vit-tiny")
+            print("SAM models loaded successfully")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load SAM models: {str(e)}")
 
-        # Load Stable Diffusion Inpainting model
-        self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
-            "stabilityai/stable-diffusion-2-1",
-            torch_dtype=torch.float32,
-            use_auth_token=False,
-        )
-        self.pipe.to("cuda")  # Use GPU on Replicate
+        try:
+            print("Loading Stable Diffusion inpainting model...")
+            self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
+                "runwayml/stable-diffusion-inpainting",
+                torch_dtype=torch.float32,
+            )
+            print("Moving Stable Diffusion model to GPU...")
+            self.pipe.to("cuda")
+            print("Stable Diffusion model loaded successfully")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load Stable Diffusion model: {str(e)}")
 
     def predict(
         self,
