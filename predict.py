@@ -21,10 +21,12 @@ class Predictor(BasePredictor):
         )
         self.pipe.to("cuda")  # Use GPU on Replicate
 
-    @Input(description="Upload a house photo")
-    @Input(description="Describe the new front yard", default="a modern lawn with colorful flowers")
-    @Input(description="What to avoid in the new front yard", default="blurry, low quality")
-    def predict(self, image, prompt, negative_prompt):
+    def predict(
+        self,
+        image: Path = Input(description="Upload a house photo"),
+        prompt: str = Input(description="Describe the new front yard", default="a modern lawn with colorful flowers"),
+        negative_prompt: str = Input(description="What to avoid in the new front yard", default="blurry, low quality"),
+    ) -> Path:
         """Run the prediction: segment the house and inpaint the yard."""
         # Load the image
         img = Image.open(image).convert("RGB")
